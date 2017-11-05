@@ -8,6 +8,8 @@ import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 
 /**
@@ -15,11 +17,13 @@ import java.util.LinkedList;
  */
 
 public class BLEListAdapter extends BaseAdapter {
-    private LinkedList<BLEList> mData;
+    private LinkedList<HashMap<String,BLEList>> mData;
     private Context mContext;
-    public  BLEListAdapter(LinkedList<BLEList> mData,Context mContext){
+    private ArrayList deviceName;
+    public  BLEListAdapter(LinkedList<HashMap<String,BLEList>> mData,Context mContext,ArrayList list){
         this.mData = mData;
         this.mContext = mContext;
+        this.deviceName = list;
     }
     @Override
     public int getCount() {
@@ -42,9 +46,10 @@ public class BLEListAdapter extends BaseAdapter {
         ImageView img_icon = (ImageView) convertView.findViewById(R.id.ble_icon);
         TextView ble_title = (TextView) convertView.findViewById(R.id.ble_title);
         TextView ble_content = (TextView) convertView.findViewById(R.id.ble_content);
-        img_icon.setBackgroundResource(mData.get(position).getaIcon());
-        ble_title.setText(mData.get(position).getaDeviceName());
-        ble_content.setText(mData.get(position).getaContent());
+        HashMap<String,BLEList> data = mData.get(position);// 取出HashMap
+        img_icon.setBackgroundResource(data.get(deviceName.get(position)).getaIcon());
+        ble_title.setText(data.get(deviceName.get(position)).getaDeviceName());
+        ble_content.setText(data.get(deviceName.get(position)).getaContent());
         return convertView;
     }
 }

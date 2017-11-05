@@ -22,6 +22,7 @@ import android.view.ViewGroup;
 import android.widget.ListView;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -89,9 +90,11 @@ public class BLEListFragment extends Fragment {
     // use android sdk VERSION > 19 (如果超過ANDROID4.4版本以上)
     private BluetoothLeScanner bluetoothLeScanner;
     //自定義列表
-    private  List<BLEList> mData = null;
+    private LinkedList<HashMap<String,BLEList>> mData  = new LinkedList<HashMap<String,BLEList>>();
     private BLEListAdapter mAdapter = null;
     private ListView blelist_view;
+    private HashMap<String,BLEList> iBeacon_device = new HashMap<String,BLEList>();
+    private ArrayList deviceList = new ArrayList();
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -107,6 +110,8 @@ public class BLEListFragment extends Fragment {
             Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
             startActivityForResult(enableBtIntent,REQUEST_ENABLE_BT);
         }else{
+            Intent intent = new Intent(getActivity(),iBeaconScanService.class);
+            getActivity().startService(intent);
             scanLeDevice(true);
         }
         return view;
@@ -117,6 +122,7 @@ public class BLEListFragment extends Fragment {
      */
     private void scanLeDevice(final boolean enable) {
         if(enable){
+            //幾秒後停止
             mHander.postDelayed(new Runnable() {
                 @Override
                 public void run() {
@@ -142,7 +148,6 @@ public class BLEListFragment extends Fragment {
             }else{
                 bluetoothLeScanner.stopScan(scanCallback);
             }
-
         }
     }
     //Device SDK Version >19 BLE
@@ -151,9 +156,6 @@ public class BLEListFragment extends Fragment {
         public void onScanResult(int callbackType, ScanResult result) {
             super.onScanResult(callbackType, result);
             final BluetoothLeDevice deviceLe = new BluetoothLeDevice(result.getDevice(),result.getRssi(),result.getScanRecord().getBytes(), System.currentTimeMillis());
-            // Bluetooth LE info
-            Log.e("Device Name: ",deviceLe.getName());
-            Log.e("Device RSSI: ", String.valueOf(deviceLe.getRssi()));
             // iBeacon
             String UUID = "";
             if(BeaconUtils.getBeaconType(deviceLe) == BeaconType.IBEACON){
@@ -161,15 +163,32 @@ public class BLEListFragment extends Fragment {
                 Log.e("UUID:",iBeaconDevice.getUUID());
                 UUID = iBeaconDevice.getUUID();
             }
+
             //產生列表
-            blelist_view = (ListView) getActivity().findViewById(R.id.ble_list);
-            mData = new LinkedList<BLEList>();
-            if(UUID != null){
-                mData.add(new BLEList(R.mipmap.ic_launcher,deviceLe.getName(),"RSSI: "+String.valueOf(deviceLe.getRssi())+" UUID: "+ UUID));
-            }else{
-                mData.add(new BLEList(R.mipmap.ic_launcher,deviceLe.getName(),"RSSI: "+String.valueOf(deviceLe.getRssi())));
+            if(blelist_view == null){
+                blelist_view = (ListView) getActivity().findViewById(R.id.ble_list);
             }
-            mAdapter = new BLEListAdapter((LinkedList<BLEList>)mData,getActivity());
+            if(deviceLe.getName() != null) {
+                Log.e("Name ", deviceLe.getName());
+                Log.e("Address:", deviceLe.getAddress());
+            }
+            if(UUID != null){
+                // 搜尋物件是否存在
+                if(!iBeacon_device.containsKey(deviceLe.getAddress())){
+                    iBeacon_device.put(deviceLe.getAddress(),new BLEList(R.mipmap.ic_launcher,deviceLe.getName(),"RSSI: "+String.valueOf(deviceLe.getRssi())+" UUID: "+ UUID));
+                    mData.add(iBeacon_device);
+                    deviceList.add(deviceLe.getAddress());
+                }
+                Log.e("size: ",String.valueOf(mData.size()));
+            }else{
+                if(!iBeacon_device.containsKey(deviceLe.getAddress())){
+                    iBeacon_device.put(deviceLe.getAddress(),new BLEList(R.mipmap.ic_launcher,deviceLe.getName(),"RSSI: "+String.valueOf(deviceLe.getRssi())));
+                    mData.add(iBeacon_device);
+                    deviceList.add(deviceLe.getAddress());
+                }
+                Log.e("size: ",String.valueOf(mData.size()));
+            }
+            mAdapter = new BLEListAdapter((LinkedList<HashMap<String,BLEList>>) mData,getActivity(),deviceList);
             mAdapter.notifyDataSetChanged();    //更新內容
             blelist_view.setAdapter(mAdapter);
         }
@@ -200,17 +219,29 @@ public class BLEListFragment extends Fragment {
                 UUID = iBeaconDevice.getUUID();
             }
             //產生列表
-            blelist_view = (ListView) getActivity().findViewById(R.id.ble_list);
-            mData = new LinkedList<BLEList>();
-            if(UUID != null){
-                mData.add(new BLEList(R.mipmap.ic_launcher,deviceLe.getName(),"RSSI: "+String.valueOf(deviceLe.getRssi())+" UUID: "+ UUID));
-            }else{
-                mData.add(new BLEList(R.mipmap.ic_launcher,deviceLe.getName(),"RSSI: "+String.valueOf(deviceLe.getRssi())));
+            if(blelist_view == null){
+                blelist_view = (ListView) getActivity().findViewById(R.id.ble_list);
             }
-            mAdapter = new BLEListAdapter((LinkedList<BLEList>)mData,getActivity());
+            Log.e("Address:",deviceLe.getAddress());
+            if(UUID != null){
+                // 搜尋物件是否存在
+                if(iBeacon_device.containsKey(deviceLe.getAddress())){
+                    iBeacon_device.put(deviceLe.getAddress(),new BLEList(R.mipmap.ic_launcher,deviceLe.getName(),"RSSI: "+String.valueOf(deviceLe.getRssi())+" UUID: "+ UUID));
+                    mData.add(iBeacon_device);
+                    deviceList.add(deviceLe.getAddress());
+                }
+                Log.e("size: ",String.valueOf(mData.size()));
+            }else{
+                if(iBeacon_device.containsKey(deviceLe.getAddress())){
+                    iBeacon_device.put(deviceLe.getAddress(),new BLEList(R.mipmap.ic_launcher,deviceLe.getName(),"RSSI: "+String.valueOf(deviceLe.getRssi())));
+                    mData.add(iBeacon_device);
+                    deviceList.add(deviceLe.getAddress());
+                }
+                Log.e("size: ",String.valueOf(mData.size()));
+            }
+            mAdapter = new BLEListAdapter((LinkedList<HashMap<String,BLEList>>) mData,getActivity(),deviceList);
             mAdapter.notifyDataSetChanged();    //更新內容
             blelist_view.setAdapter(mAdapter);
         }
     };
-
 }
