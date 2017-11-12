@@ -110,8 +110,7 @@ public class BLEListFragment extends Fragment {
             Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
             startActivityForResult(enableBtIntent,REQUEST_ENABLE_BT);
         }else{
-            Intent intent = new Intent(getActivity(),iBeaconScanService.class);
-            getActivity().startService(intent);
+
             scanLeDevice(true);
         }
         return view;

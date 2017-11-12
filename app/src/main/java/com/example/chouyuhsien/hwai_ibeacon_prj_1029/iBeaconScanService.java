@@ -30,12 +30,10 @@ import uk.co.alt236.bluetoothlelib.device.beacon.ibeacon.IBeaconDevice;
 /**
  * Created by Chou Yu Hsien on 2017/11/4.
  */
-@RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+
 public class iBeaconScanService extends Service {
     private BluetoothAdapter mBluetoothAdapter;
     private BluetoothManager bluetoothManager;
-    // Stops scanning after 10 seconds.
-    private static final long SCAN_PERIOD = 60000;
     // use android sdk VERSION > 19 (如果超過ANDROID4.4版本以上)
     private BluetoothLeScanner bluetoothLeScanner;
     @Nullable
@@ -47,6 +45,7 @@ public class iBeaconScanService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
+        Log.e("msg","start service");
         //任務執行
         bluetoothManager =  (BluetoothManager) getApplicationContext().getSystemService(Context.BLUETOOTH_SERVICE);
         mBluetoothAdapter = bluetoothManager.getAdapter();
@@ -79,11 +78,12 @@ public class iBeaconScanService extends Service {
         @Override
         public void onScanResult(int callbackType, ScanResult result) {
             super.onScanResult(callbackType, result);
+            Log.e("msg","scen BLE");
             final BluetoothLeDevice deviceLe = new BluetoothLeDevice(result.getDevice(),result.getRssi(),result.getScanRecord().getBytes(), System.currentTimeMillis());
             // 如果設備為 IBeacon Device
             if (BeaconUtils.getBeaconType(deviceLe) == BeaconType.IBEACON) {
                 final IBeaconDevice iBeaconDevice = new IBeaconDevice(deviceLe);
-                iBeacon_distance(deviceLe.getRssi(),iBeaconDevice.getUUID(),iBeaconDevice.getCalibratedTxPower());
+                iBeacon_distance(deviceLe.getRssi(),iBeaconDevice.getAddress(),iBeaconDevice.getCalibratedTxPower());
             }
         }
 
@@ -103,33 +103,39 @@ public class iBeaconScanService extends Service {
         @Override
         public void onLeScan(BluetoothDevice device, int rssi, byte[] scanRecord) {
             final BluetoothLeDevice deviceLe = new BluetoothLeDevice(device, rssi, scanRecord, System.currentTimeMillis());
+            Log.e("msg","背景掃描開始");
             Log.e("Device Name: ", deviceLe.getName());
             Log.e("Device RSSI: ", String.valueOf(deviceLe.getRssi()));
             // 如果設備為 IBeacon Device
             if (BeaconUtils.getBeaconType(deviceLe) == BeaconType.IBEACON) {
                 final IBeaconDevice iBeaconDevice = new IBeaconDevice(deviceLe);
-                iBeacon_distance(deviceLe.getRssi(),iBeaconDevice.getUUID(),iBeaconDevice.getCalibratedTxPower());
+                iBeacon_distance(deviceLe.getRssi(),iBeaconDevice.getAddress(),iBeaconDevice.getCalibratedTxPower());
             }
             Log.e("Address:", deviceLe.getAddress());
 
         }
     };
     //距離換算
-    private void iBeacon_distance(final int iBeacon_RSSI,final String UUID,final int TxPower){
+    private void iBeacon_distance(final int iBeacon_RSSI,final String Mac_address,final int TxPower){
+        Log.e("msg","檢測距離");
         double power = iBeacon_RSSI * 1.0 / TxPower;
         double distance = Math.pow(power,10);
         if(distance <= 1){
-            search_ble_sqlite(UUID);
+            search_ble_sqlite(Mac_address);
         }
     }
     //搜尋SQLite 比對UUID 如資料符合跳出訊息
-    private void search_ble_sqlite(final String Ibeacon_UUID){
+    private void search_ble_sqlite(final String Ibeacon_Mac_Address){
         //取得通知管理器
         NotificationManager noMgr = (NotificationManager) getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
         iBeaconSQLite sqlHelper = new iBeaconSQLite(getApplicationContext(),null);
         SQLiteDatabase db = sqlHelper.getReadableDatabase();
-        Cursor cursor = db.rawQuery("SELECT * FROM `iBeacon_devices` WHERE `iBeacon_UUID` =  ? ",new String[]{Ibeacon_UUID});
-        if(cursor.getCount() != 0){
+        Log.e("mac address",Ibeacon_Mac_Address);
+        Cursor cursor = db.rawQuery("SELECT count(*) FROM `iBeacon_devices` WHERE `iBeacon_Mac_Address` =  ? ",new String[]{Ibeacon_Mac_Address});
+        if(cursor.getCount() >0){
+            Log.e("msg","找到iBeacon");
+            cursor = db.rawQuery("SELECT * FROM `iBeacon_devices` WHERE `iBeacon_Mac_Address` =  ? ",new String[]{Ibeacon_Mac_Address});
+            cursor.moveToFirst();
             if(cursor.getString(cursor.getColumnIndex("iBeacon_link")) != null){
                 /*
                  * 點擊通知後執行開啟 Browser

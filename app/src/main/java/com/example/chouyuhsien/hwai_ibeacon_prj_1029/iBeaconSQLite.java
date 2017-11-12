@@ -17,7 +17,7 @@ public class iBeaconSQLite extends SQLiteOpenHelper {
     public void onCreate(SQLiteDatabase db) {
         db.execSQL("CREATE TABLE iBeacon_devices"+
                     "(id INTEGER PRIMARY KEY NOT NULL,"+
-                    "iBeacon_UUID VARCHAR,"+
+                    "iBeacon_Mac_Address VARCHAR,"+
                     "iBeacon_link VARCHAR,"+
                     "iBeacon_title VARCHAR,"+
                     "iBeacon_content VARCHAR)");
