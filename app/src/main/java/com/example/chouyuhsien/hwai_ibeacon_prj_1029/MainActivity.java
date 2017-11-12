@@ -18,12 +18,8 @@ import android.os.Bundle;
 import android.util.Log;
 import android.widget.Toast;
 
-<<<<<<< HEAD
 import org.json.JSONArray;
 import org.json.JSONObject;
-=======
-@RequiresApi(api = Build.VERSION_CODES.M)
->>>>>>> 1d261b925a10e4a9c5626061293ebf696436c8d3
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -41,38 +37,32 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         new web().execute();
         /*
-<<<<<<< HEAD
          *藍芽權限 用於Android 6.0 以上權限檢查
          */
         if(Build.VERSION.SDK_INT >= 23){
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                 Log.e("權限","false");
-=======
-                 *  藍芽權限
-                 *  http://blog.csdn.net/KjunChen/article/details/52769915
-                 */
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
-            if(ContextCompat.checkSelfPermission(this,Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED){
-                Toast.makeText(this,"自Android 6.0以後需要開啟藍芽權限才可以搜索BLE設備，請允許",Toast.LENGTH_LONG).show();
->>>>>>> 1d261b925a10e4a9c5626061293ebf696436c8d3
                 ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},1);
             }else{
-                showUI();
+                if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
+                    Toast.makeText(this, "Not Support", Toast.LENGTH_SHORT).show();
+                    finish();
+                }else{
+                    FragmentTransaction ft = fm.beginTransaction();
+                    ft.replace(R.id.myui,new BLEListFragment());
+                    ft.commit();
+                }
             }
         }else{
-            showUI();
+            if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
+                Toast.makeText(this, "Not Support", Toast.LENGTH_SHORT).show();
+                finish();
+            }else{
+                FragmentTransaction ft = fm.beginTransaction();
+                ft.replace(R.id.myui,new BLEListFragment());
+                ft.commit();
+            }
         }
-    }
-    public void showUI(){
-        if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
-            Toast.makeText(this, "Not Support", Toast.LENGTH_SHORT).show();
-            finish();
-        }else{
-            FragmentTransaction ft = fm.beginTransaction();
-            ft.replace(R.id.myui,new BLEListFragment());
-            ft.commit();
-        }
-<<<<<<< HEAD
         startService(new Intent(this,iBeaconScanService.class));
 
     }
@@ -140,7 +130,5 @@ public class MainActivity extends AppCompatActivity {
             }
             return null;
         }
-=======
->>>>>>> 1d261b925a10e4a9c5626061293ebf696436c8d3
     }
 }

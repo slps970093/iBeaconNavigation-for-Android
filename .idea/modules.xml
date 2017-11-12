@@ -2,9 +2,8 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://D:\User\Documents\GitHub\iBeaconNavigation-for-Android\Hwai_iBeacon_Prj_1029.iml" filepath="D:\User\Documents\GitHub\iBeaconNavigation-for-Android\Hwai_iBeacon_Prj_1029.iml" />
+      <module fileurl="file://$PROJECT_DIR$/Hwai_iBeacon_Prj_1029.iml" filepath="$PROJECT_DIR$/Hwai_iBeacon_Prj_1029.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
-      <module fileurl="file://$PROJECT_DIR$/iBeaconNavigation-for-Android.iml" filepath="$PROJECT_DIR$/iBeaconNavigation-for-Android.iml" />
     </modules>
   </component>
 </project>
