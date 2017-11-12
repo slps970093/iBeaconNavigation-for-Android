@@ -25,7 +25,10 @@
     </application>
     <uses-permission android:name="android.permission.BLUETOOTH"/>
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
+<<<<<<< HEAD
     <uses-permission android:name="android.permission.INTERNET"></uses-permission>
+=======
+>>>>>>> 1d261b925a10e4a9c5626061293ebf696436c8d3
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
     <uses-feature android:name="android.hardware.bluetooth_le" android:required="true"/>
 </manifest>
